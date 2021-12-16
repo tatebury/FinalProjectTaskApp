@@ -1,0 +1,5 @@
+{
+  "short_name": "Task App",
+  "name": "My React Task Manager App",
+  "start_url": "."
+}
