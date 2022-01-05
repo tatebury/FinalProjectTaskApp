@@ -46,7 +46,7 @@ const Login=(props)=>{
         })
         .then(response=>{
             if (response.data.token){
-                console.log(response.data);
+                // console.log(response.data);
                 setRedirect(true);
             }
             return response;

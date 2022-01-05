@@ -1,24 +1,39 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import Button from 'react-bootstrap/Button';
 import { deactivateAll } from '../api/active';
 import { getIsStarted, setIsStarted } from '../api/started';
 import { completeTask, finishTasks } from '../api/complete';
+import { useForceUpdate } from '../customHooks/useForceUpdate';
 import { useUpdateEffect } from '../customHooks/useUpdateEffect';
+import { getCompletedTasks } from '../api/task'
 import { TaskContext } from '../App';
 import { taskPageStyles } from '../styles';
 import { homeStyles } from '../styles';
+import FinishPopup from './FinishPopup';
+import { miscStyles } from '../styles';
 
 
 const Home = (props) => {
-    const tasks = useContext(TaskContext);
+    const checkMark = useRef("https://res.cloudinary.com/dzxscynhz/image/upload/v1641169599/android-chrome-192x192_pbres0.png");
+    const plusMark = useRef("https://res.cloudinary.com/dzxscynhz/image/upload/v1641256910/1921090_a8xrfj.png");
 
-    const [activeTasks, setActiveTasks] = useState(()=>[]);
-    const [primaryTasks, setPrimaryTasks] = useState(()=>[]);
-    const [primaryTasksComplete, setPrimaryTasksComplete] = useState(()=>false);
+    const tasks = useContext(TaskContext);
+    const forceUpdate = useForceUpdate();
+
+    const activeTasks = useRef([]);
+    const mainTasksCompleted = useRef([]);
+    const bonusTasksCompleted = useRef([]);
+    const primaryTasks = useRef([]);
+    const finished = useRef(false);
+    const primaryTasksComplete = useRef(false);
     const [userID, setUserID] = useState(()=>parseInt(localStorage.getItem('currentUserID')));
 
     useEffect(()=>{
         getIsStarted(userID, (responseBool)=>props.setStarted(responseBool))
+        getCompletedTasks(userID, (responseObj)=>{
+            mainTasksCompleted.current = responseObj.main_tasks;
+            bonusTasksCompleted.current = responseObj.bonus_tasks;
+        })
     }, []);
     
     useEffect(()=>{
@@ -39,9 +54,14 @@ const Home = (props) => {
                 }
             }
         }
-        setActiveTasks(active);
-        setPrimaryTasks(primary);
-        setPrimaryTasksComplete(complete);
+        activeTasks.current = active;
+        primaryTasks.current = primary;
+        primaryTasksComplete.current = complete;
+        forceUpdate();
+        
+        return(()=>{
+            
+        })
     }, [tasks]);
 
     useUpdateEffect(()=>{
@@ -51,14 +71,39 @@ const Home = (props) => {
     //check if all non bonus tasks in activeTasks are complete then setPrimaryTasksComplete
     const checkPrimaryTasks=()=>{
         let complete = true;
-        for(let task of primaryTasks){
+        for(let task of primaryTasks.current){
             if (task.is_completed==false){
                 complete = false;
                 break;
             }
         }
-        setPrimaryTasksComplete(complete);
+        primaryTasksComplete.current = complete;
+        forceUpdate();
     }
+
+    const setActiveTaskComplete=(complete, bonus, index)=>{
+        let tasks = activeTasks.current
+        let task = tasks[index]
+        if(task!==undefined){
+            task.is_completed = complete;
+            if(complete){
+                if(bonus){
+                    if(primaryTasksComplete){
+                        task.is_counted_as_bonus = true;
+                    }
+                    bonusTasksCompleted.current = [...bonusTasksCompleted.current, task];
+                }else{
+                    mainTasksCompleted.current = [...mainTasksCompleted.current, task];
+                }
+            }
+        }else{
+            console.error("task was not found");
+        }
+        activeTasks.current = tasks;
+        forceUpdate();
+    }
+
+
 
     //use api call to turn off all tasks, refresh this task list when done
     const handleRemoveAll=()=>deactivateAll(userID, ()=>props.getUserTasks());
@@ -66,6 +111,7 @@ const Home = (props) => {
     // give api call a userID to start, and a function to call when done
     const handleStart=()=>setIsStarted(true, userID, ()=>props.setStarted(true));
     const handleFinish=()=>{
+        finished.current = true;
         setIsStarted(false, userID, ()=>props.setStarted(false));
         finishTasks(userID, (responsePoints)=>{
             localStorage.setItem('totalPoints', responsePoints);
@@ -73,42 +119,64 @@ const Home = (props) => {
         });
     }
 
-    const handleCompletedTask=(taskID)=>{
+    const handleCompletedTask=(taskID, index)=>{
+        setActiveTaskComplete(true, false, index);
         completeTask(userID, taskID, false, ()=>{
             checkPrimaryTasks();
-            props.getUserTasks();
         });
     }
-    const handleCompletedBonusTask=(taskID)=>{
-        completeTask(userID, taskID, primaryTasksComplete, ()=>{
-            props.getUserTasks();
-        });
+    const handleCompletedBonusTask=(taskID, index)=>{
+        setActiveTaskComplete(true, primaryTasksComplete, index);
+        completeTask(userID, taskID, primaryTasksComplete, ()=>{});
     }
 
+
+    const styles = {
+        checkMarkImg:{
+            height:"2.5rem"
+        },
+        plusMarkImg:{
+            height:"1.25rem"
+        },
+        taskName:{
+            fontSize:"20px"
+        }
+    }
+    
     return (
+        <>
         <div style={taskPageStyles.pageStyle}>
 
-            {activeTasks.length>0 ? 
+            {activeTasks.current.length>0 ? 
             <>
             <a style={taskPageStyles.link} href={"/mytasks"}>Add more tasks</a><br/>
             {props.started==true ?
             <>
-            <Button style={taskPageStyles.finishButton} variant="success" onClick={handleFinish}>Finish</Button>
+            <Button style={taskPageStyles.finishButton} variant="success" 
+                onClick={handleFinish}>
+                    Finish
+            </Button>
             </>
             :
             <>
-            <Button style={taskPageStyles.startButton} variant="info" onClick={handleStart}>Start</Button>
-            <Button style={taskPageStyles.removeAllButton} variant="danger" onClick={handleRemoveAll}>Remove All</Button>
+            <Button style={taskPageStyles.startButton} variant="info" 
+                onClick={handleStart}>
+                Start
+            </Button>
+            <Button style={taskPageStyles.removeAllButton} variant="danger" 
+                onClick={handleRemoveAll}>
+                Remove All
+            </Button>
             </>
             }
             <div>
             <ul>
-                {activeTasks.map(task=>(
-                            <li key={task.id} style={{...taskPageStyles.listItem, "backgroundColor":task.color}}>
+                {activeTasks.current.map(task=>(
+                    <li key={task.id} style={{...taskPageStyles.listItem, "backgroundColor":task.color}}>
                                     
                                     
                                 <div style={taskPageStyles.name}>
-                                    <h5>{task.name}</h5>
+                                    <b style={{...styles.taskName, ...miscStyles.blackOutline}}>{task.name}</b><br/>
                                     <b>{parseInt(task.time/60)} min</b><br/>
                                 </div>
                                 <h4 style={taskPageStyles.importance}><b>{task.importance}</b></h4>
@@ -121,18 +189,28 @@ const Home = (props) => {
                                 <>
                                     {task.is_completed==true ?
                                     <>
-                                        {task.is_bonus==false ?
-                                        <Button variant="success">Completed</Button>
+                                        {task.is_counted_as_bonus==false ?
+                                            <img src={checkMark.current} style={styles.checkMarkImg} />
                                         :
-                                        <Button variant="success">Completed Bonus</Button>
+                                        <>
+                                        <img src={plusMark.current} style={styles.plusMarkImg} />
+                                        &nbsp;
+                                        <img src={checkMark.current} style={styles.checkMarkImg} />
+                                        </>
                                         }
                                     </>
                                     :
                                     <>
                                         {task.is_bonus==false ?
-                                        <Button  style={taskPageStyles.useButton} variant="primary" onClick={()=>handleCompletedTask(task.id)}>I'm Done</Button>
+                                        <Button  style={taskPageStyles.useButton} variant="primary" 
+                                            onClick={()=>handleCompletedTask(task.id, activeTasks.current.indexOf(task))}>
+                                            I'm Done
+                                        </Button>
                                         :
-                                        <Button variant="success" onClick={()=>handleCompletedBonusTask(task.id)}>Bonus Done</Button>
+                                        <Button variant="success" 
+                                            onClick={()=>handleCompletedBonusTask(task.id, activeTasks.current.indexOf(task))}>
+                                            Bonus Done
+                                        </Button>
                                         }
                                     </>
                                     }
@@ -143,7 +221,7 @@ const Home = (props) => {
                                 <br/>
                             </li>
                         )
-                    )
+                        )
                 }
             </ul>
             </div>
@@ -155,8 +233,16 @@ const Home = (props) => {
             or create new ones with the
             &nbsp;<a style={homeStyles.link} href={"/taskbuilder"}>Task Builder</a>.
             </p>
+
             }
         </div>
+        <FinishPopup 
+        finished={finished}
+        activeTasks={activeTasks}
+        mainTasksCompleted={mainTasksCompleted}
+        bonusTasksCompleted={bonusTasksCompleted}
+        ></FinishPopup>
+        </>
     );
 }
 

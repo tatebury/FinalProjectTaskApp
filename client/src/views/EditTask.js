@@ -33,6 +33,7 @@ export default function EditTask(props) {
      });
 
     useEffect(()=>{
+        if(initialValues.current.importance!=null){ return }
         getUser(userID, (response)=>{
             getTask(response.edit, (response)=>{
                 initialValues.current["name"] = response.name
@@ -45,14 +46,13 @@ export default function EditTask(props) {
                 });
         });
     }, [initialValues])
+
     
 
 
 
 
     const handleSubmit = ({name, description, steps, importance, time, isPublic}) => {
-        // console.log(name, description, steps, importance, time, isPublic);
-        // console.log(typeof(task.name));
         axios.put(`http://127.0.0.1:5000/tasks/${task.id}?name=${name}&description=${description}&steps=${steps}&importance=${importance}&time=${time}&is_public=${isPublic}&user_id=${props.currentUserID}`)
         .then(response=>{
             if (response.data){

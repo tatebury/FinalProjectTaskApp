@@ -5,7 +5,7 @@ export const completeTask=(userID, taskID, bonus=false, after=()=>{})=>{
     if(bonus===false){
         axios.post(`http://127.0.0.1:5000/user/${userID}/tasks/${taskID}/complete`)
         .then(response=>{
-            console.log(response.data);
+            // console.log(response.data);
             after();
         })
         .catch(error=>{
@@ -15,7 +15,7 @@ export const completeTask=(userID, taskID, bonus=false, after=()=>{})=>{
     else{
         axios.post(`http://127.0.0.1:5000/user/${userID}/tasks/${taskID}/complete?bonus=1`)
         .then(response=>{
-            console.log(response.data);
+            // console.log(response.data);
             after();
         })
         .catch(error=>{

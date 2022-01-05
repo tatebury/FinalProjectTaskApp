@@ -9,9 +9,9 @@ const NavBar = (props) => {
             <div>
                 <Navbar bg="dark" variant="dark" expand="lg" >
                     <Container>
-                        <Navbar.Brand as={Link} to="/">Task App</Navbar.Brand>
+                        <Navbar.Brand as={Link} to="/">IDIM</Navbar.Brand>
                         <Navbar.Toggle aria-controls="basic-navbar-nav" />
-                        {props.totalPoints?
+                        {props.token?
                         <h6 style={navStyles.points}>{props.totalPoints} points</h6>
                         :''}
                         <Navbar.Collapse id="basic-navbar-nav">

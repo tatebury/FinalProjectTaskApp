@@ -127,6 +127,7 @@ class Task(db.Model):
     points = db.Column(db.Integer, index=True, default=10)
     is_active = db.Column(db.Boolean, default=False)
     is_bonus = db.Column(db.Boolean, default=False)
+    is_counted_as_bonus = db.Column(db.Boolean, default=False)
     is_completed = db.Column(db.Boolean, default=False)
     date_created = db.Column(db.DateTime, default=dt.utcnow)
     date_updated = db.Column(db.DateTime, onupdate=dt.utcnow)
@@ -186,6 +187,7 @@ class Task(db.Model):
             "is_public": self.is_public,
             "is_active": self.is_active,
             "is_bonus": self.is_bonus,
+            "is_counted_as_bonus": self.is_counted_as_bonus,
             "is_completed": self.is_completed,
             
             "times_completed": self.times_completed,
@@ -217,6 +219,7 @@ class Task(db.Model):
         self.is_completed = False
         self.is_active = False
         self.is_bonus = False
+        self.is_counted_as_bonus = False
         self.save()
         
     def recalculate_points(self):

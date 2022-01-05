@@ -21,3 +21,13 @@ export const deleteTask=(taskID, after=()=>{})=>{
         console.error("There was an error getting the task: "+error);
     })
 }
+
+export const getCompletedTasks=(userID, after=()=>{})=>{
+    axios.get(`http://127.0.0.1:5000/user/${userID}/completedtasks`)
+    .then(response=>{
+        after(response.data);
+    })
+    .catch(error=>{
+        console.error("There was an error getting completed tasks: "+error);
+    })
+}

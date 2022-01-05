@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 // import AdminRoute from './components/AdminRoute';
 // import {titleCase, parseBool} from './helpers';
 import {Routes, Route} from 'react-router-dom';
@@ -19,6 +19,7 @@ import { getUser } from './api/user';
 import axios from 'axios';
 
 export const TaskContext = React.createContext()
+// export const EditTaskContext = React.createContext()
 
 const App=()=>{
   const [user, setUser] = useState({});
@@ -29,11 +30,16 @@ const App=()=>{
   const [totalPoints, setTotalPoints] = useState(()=>0);
   const [isFirstRender, setIsFirstRender] = useState(()=>true);
   const [started, setStarted] = useState(()=>false);
+  const fromEdit = useRef(false);
+
 
   useEffect(()=>getIsStarted(currentUserID, (responseBool)=>setStarted(responseBool)), []);
 
   useUpdateEffect(()=>{
     setCurrentUserID(parseInt(localStorage.getItem('currentUserID')));
+    // getUser(parseInt(localStorage.getItem('currentUserID')), (response)=>{
+    //   setUser(response);
+    // })
   }, [currentUserID])
 
   useEffect(()=>{
@@ -43,14 +49,16 @@ const App=()=>{
     setUserTasks(JSON.parse(localStorage.getItem('tasks')));
   }, []);
 
-  const getUserTasks=()=>{
+  const getUserTasks=(after=()=>{})=>{
     setTotalPoints(parseInt(localStorage.getItem('totalPoints')));
     let id = localStorage.getItem('currentUserID');
     if (id) {
       axios.get(`http://127.0.0.1:5000/user/${id}/tasks`)
       .then(response=>{
+        // console.log(response.data);
         setUserTasks(response.data.tasks);
         localStorage.setItem('tasks', JSON.stringify(response.data.tasks));
+        after(response.data.tasks);
       })
 
     }
@@ -64,6 +72,9 @@ const App=()=>{
   return (
     <>
       <NavBar token={token} totalPoints={totalPoints}/>
+      {/* {"my token: "+token}<br/> */}
+      {/* {"user: "+user}<br/> */}
+      {/* {"currentUserID: "+currentUserID}<br/> */}
 
       <TaskContext.Provider value={userTasks}>
       <Routes>
@@ -88,6 +99,7 @@ const App=()=>{
             currentUserID={currentUserID}
             started={started}
             setStarted={setStarted}
+            fromEdit={fromEdit}
             />
           </ProtectedRoute>
         }/>

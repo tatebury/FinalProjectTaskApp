@@ -1,6 +1,7 @@
 from . import bp as api
 from app.models import *
 from flask import make_response, request
+from sqlalchemy import and_
 import json
 
 
@@ -54,10 +55,12 @@ def set_task_active(task_id):
 # set all is_active and is_bonus values to False for a user's tasks
 @api.put('/user/<int:user_id>/tasks/deactivateall')
 def deactivate_all_tasks(user_id):
-    tasks = User.query.get(user_id).tasks
+    tasks = Task.query.filter_by(user_id=user_id)
+    
     for task in tasks:
-        task.set_active(active=False, bonus=False) 
-        task.reset_task()
+        if task.is_active==True:
+            task.set_active(active=False, bonus=False) 
+            task.reset_task()
     return make_response(f"All tasks deactivated.",200)
 
 
@@ -84,6 +87,8 @@ def complete_task(user_id, task_id):
     if bonus==False:
         user.add_points(task.points)
     else:
+        task.is_counted_as_bonus = True
+        task.save()
         user.add_points(task.points * 2)
         
     return make_response(f"Task {task.id} completed by user {user.id}")
@@ -95,15 +100,33 @@ def finish_tasks(user_id):
     user = User.query.get(user_id)
     if not user:
         return make_response(f"User ID: {user_id} does not exist.", 404)
+    
     for task in user.tasks:
         if task.is_active==True:
             if task.is_completed==False:
                 task.skip_task()
-                task.recalculate_points()
                 if task.is_bonus==False:
                     user.subtract_points(task.points)
+                task.recalculate_points()
             task.reset_task()
+            
     return make_response({"total_points":user.total_points}, 200)
+
+@api.get('/user/<int:user_id>/completedtasks')
+def get_completed_tasks(user_id):
+    tasks = Task.query.filter_by(user_id=user_id)
+    bonus_tasks = []
+    main_tasks = []
+    for task in tasks:
+        if task.is_completed==True:
+            if task.is_counted_as_bonus==True:
+                bonus_tasks.append(task.to_dict())
+            else:
+                main_tasks.append(task.to_dict())
+    return make_response({
+        "main_tasks":main_tasks,
+        "bonus_tasks":bonus_tasks
+    }, 200)
     
 
 
