@@ -53,7 +53,7 @@ export default function EditTask(props) {
 
 
     const handleSubmit = ({name, description, steps, importance, time, isPublic}) => {
-        axios.put(`http://127.0.0.1:5000/tasks/${task.id}?name=${name}&description=${description}&steps=${steps}&importance=${importance}&time=${time}&is_public=${isPublic}&user_id=${props.currentUserID}`)
+        axios.put(`https://idimtaskapp.herokuapp.com/tasks/${task.id}?name=${name}&description=${description}&steps=${steps}&importance=${importance}&time=${time}&is_public=${isPublic}&user_id=${props.currentUserID}`)
         .then(response=>{
             if (response.data){
                 console.log(response.data);

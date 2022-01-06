@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export const getTask=(taskID, after=()=>{})=>{
-    axios.get(`http://127.0.0.1:5000/tasks/${taskID}`)
+    axios.get(`https://idimtaskapp.herokuapp.com/tasks/${taskID}`)
     .then(response=>{
         // console.log(response.data);
         after(response.data);
@@ -12,7 +12,7 @@ export const getTask=(taskID, after=()=>{})=>{
 }
 
 export const deleteTask=(taskID, after=()=>{})=>{
-    axios.delete(`http://127.0.0.1:5000/tasks/${taskID}`)
+    axios.delete(`https://idimtaskapp.herokuapp.com/tasks/${taskID}`)
     .then(response=>{
         console.log(response.data);
         after();
@@ -23,7 +23,7 @@ export const deleteTask=(taskID, after=()=>{})=>{
 }
 
 export const getCompletedTasks=(userID, after=()=>{})=>{
-    axios.get(`http://127.0.0.1:5000/user/${userID}/completedtasks`)
+    axios.get(`https://idimtaskapp.herokuapp.com/user/${userID}/completedtasks`)
     .then(response=>{
         after(response.data);
     })

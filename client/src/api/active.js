@@ -4,7 +4,7 @@ import axios from 'axios';
 
 export const setActive=(taskID, active=true, after=()=>{})=>{
 
-    axios.put(`http://127.0.0.1:5000/tasks/${taskID}/setactive?active=${active}`)
+    axios.put(`https://idimtaskapp.herokuapp.com/tasks/${taskID}/setactive?active=${active}`)
     .then(response=>{
         after();
     })
@@ -13,7 +13,7 @@ export const setActive=(taskID, active=true, after=()=>{})=>{
 
 export const setBonusActive=(taskID, active=true, after=()=>{})=>{
 
-    axios.put(`http://127.0.0.1:5000/tasks/${taskID}/setactive?active=${active}&bonus=1`)
+    axios.put(`https://idimtaskapp.herokuapp.com/tasks/${taskID}/setactive?active=${active}&bonus=1`)
     .then(response=>{
         after();
     })
@@ -21,7 +21,7 @@ export const setBonusActive=(taskID, active=true, after=()=>{})=>{
 }
 
 export const deactivateAll=(userID, after=()=>{})=>{
-    axios.put(`http://127.0.0.1:5000/user/${userID}/tasks/deactivateall`)
+    axios.put(`https://idimtaskapp.herokuapp.com/user/${userID}/tasks/deactivateall`)
     .then(response=>{
         console.log(response.data);
         after();

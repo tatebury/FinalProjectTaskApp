@@ -36,7 +36,7 @@ const Register=(props)=>{
 
 
     const handleSubmit = ({firstName, lastName, username, password, icon}) => {
-        axios.post(`http://127.0.0.1:5000/user?first_name=${firstName}&last_name=${lastName}&username=${username}&password=${password}&icon=${icon}`)
+        axios.post(`https://idimtaskapp.herokuapp.com/user?first_name=${firstName}&last_name=${lastName}&username=${username}&password=${password}&icon=${icon}`)
         .then(response=>{
             if (response.data){
                 console.log(response.data);

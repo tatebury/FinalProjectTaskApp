@@ -35,7 +35,7 @@ export default function TaskBuilder(props) {
 
     const handleSubmit = ({name, description, steps, importance, time, isPublic}) => {
         // console.log(name, description, steps, importance, time, isPublic);
-        axios.post(`http://127.0.0.1:5000/tasks?name=${name}&description=${description}&steps=${steps}&importance=${importance}&time=${time}&is_public=${isPublic}&user_id=${props.currentUserID}`)
+        axios.post(`https://idimtaskapp.herokuapp.com/tasks?name=${name}&description=${description}&steps=${steps}&importance=${importance}&time=${time}&is_public=${isPublic}&user_id=${props.currentUserID}`)
         .then(response=>{
             if (response.data){
                 console.log(response.data);

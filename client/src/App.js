@@ -53,7 +53,7 @@ const App=()=>{
     setTotalPoints(parseInt(localStorage.getItem('totalPoints')));
     let id = localStorage.getItem('currentUserID');
     if (id) {
-      axios.get(`http://127.0.0.1:5000/user/${id}/tasks`)
+      axios.get(`https://idimtaskapp.herokuapp.com/user/${id}/tasks`)
       .then(response=>{
         // console.log(response.data);
         setUserTasks(response.data.tasks);
